@@ -14,7 +14,7 @@ library("tidyverse")
 # CIT_full contains the expression of all probes for all samples
 # CIT_annot contains the annotation for the 375 probes used for classification
 # CIT_class contains the subtypes
-load("data/CIT_data.Rdata")
+load("data/_raw/CIT_data.Rdata")
 
 
 ## If you didn't do this yesterday, try to visualize the six subtypes using PCA
