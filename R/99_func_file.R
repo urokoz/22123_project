@@ -10,10 +10,13 @@ probe_to_gene <- function(data, method) {
   
   if (data == "bordet") {
     Bordet_array_df <- data.frame("Probe.Set.ID" = row.names(Bordet_array), Bordet_array)
-    Bordet_df_joined <- Bordet_annot %>% left_join(Bordet_array_df, by = "Probe.Set.ID")
+    Bordet_df_joined <- Bordet_annot %>%
+      select(Probe.Set.ID, Gene.Symbol) %>% 
+      inner_join(Bordet_array_df, by = "Probe.Set.ID")
     
     if (method == "max") {
-      final_table <- Brodet_df_joined %>% select(Gene.Symbol, HER2.13:ncol(Brodet_df_joined)) %>% 
+      final_table <- Bordet_df_joined %>% 
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Max = max(Expression)) %>% 
@@ -21,7 +24,8 @@ probe_to_gene <- function(data, method) {
     }
     
     if (method == "mean") {
-      final_table <- Brodet_df_joined %>% select(Gene.Symbol, HER2.13:ncol(Brodet_df_joined)) %>% 
+      final_table <- Bordet_df_joined %>%  
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Mean = mean(Expression)) %>% 
@@ -29,7 +33,8 @@ probe_to_gene <- function(data, method) {
     }
     
     if (method == "median") {
-      final_table <- Brodet_df_joined %>% select(Gene.Symbol, HER2.13:ncol(Brodet_df_joined)) %>% 
+      final_table <- Bordet_df_joined %>%  
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Median = median(Expression)) %>% 
@@ -39,10 +44,13 @@ probe_to_gene <- function(data, method) {
 
   if (data == "CIT") {
     CIT_array_df <- data.frame("Probe.Set.ID" = row.names(CIT_full), CIT_full)
-    CIT_df_joined <- Bordet_annot %>% left_join(CIT_array_df, by = "Probe.Set.ID")
+    CIT_df_joined <- Bordet_annot %>%
+      select(Probe.Set.ID, Gene.Symbol) %>% 
+      inner_join(CIT_array_df, by = "Probe.Set.ID")
     
     if (method == "max") {
-      final_table <- CIT_df_joined %>% select(Gene.Symbol, CIT_DSOA_440:ncol(CIT_df_joined)) %>% 
+      final_table <- CIT_df_joined %>% 
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Max = max(Expression)) %>% 
@@ -50,7 +58,8 @@ probe_to_gene <- function(data, method) {
     }
     
     if (method == "mean") {
-      final_table <- CIT_df_joined %>% select(Gene.Symbol, CIT_DSOA_440:ncol(CIT_df_joined)) %>% 
+      final_table <- CIT_df_joined %>% 
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Mean = mean(Expression)) %>% 
@@ -58,7 +67,8 @@ probe_to_gene <- function(data, method) {
     }
     
     if (method == "median") {
-      final_table <- CIT_df_joined %>% select(Gene.Symbol, CIT_DSOA_440:ncol(CIT_df_joined)) %>% 
+      final_table <- CIT_df_joined %>% 
+        select(!Probe.Set.ID) %>% 
         pivot_longer(cols = !Gene.Symbol, names_to = "Sample", values_to = "Expression") %>% 
         group_by(Gene.Symbol, Sample) %>% 
         summarise(Median = median(Expression)) %>% 
@@ -81,27 +91,26 @@ probe_to_gene <- function(data, method) {
 
 signature_procsess <- function(df, specification, method) {
   if (specification == "CIT") {
-    df_joined <- inner_join(df, CIT_annot, by = "Probe.Set.ID")
+    df_joined <- Bordet_annot %>%
+      select(Probe.Set.ID, Gene.Symbol) %>% 
+      inner_join(df, by = "Probe.Set.ID")
   
     if (method == "max") {
-      final_table <- df_joined %>% select(Gene.Symbol, 
-                                          last_col()) %>% 
+      final_table <- df_joined %>% 
         group_by(Gene.Symbol) %>% 
-        summarise(Max = max(last_col())) 
+        summarise(Max_expr = max(last_col())) 
     }
     
     if (method == "mean") {
-      final_table <- df_joined %>% select(Gene.Symbol, 
-                                          last_col()) %>% 
+      final_table <- df_joined %>% 
         group_by(Gene.Symbol) %>% 
-        summarise(Max = mean(last_col())) 
+        summarise(Mean_expr = mean(last_col())) 
     }
     
     if (method == "Median") {
-      final_table <- df_joined %>% select(Gene.Symbol, 
-                                          last_col()) %>% 
+      final_table <- df_joined %>%
         group_by(Gene.Symbol) %>% 
-        summarise(Max = median(last_col())) 
+        summarise(Median_expr = median(last_col())) 
     }
   }
   

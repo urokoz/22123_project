@@ -76,7 +76,7 @@ pred_perf <- function(signa, class) {
 }
 
 signatures <- c()
-perf_collect <- c()
+performances <- c()
 
 for (class in unique(CIT_classes)) {
   sig_probes <- FC_lists[[class]]
@@ -84,13 +84,12 @@ for (class in unique(CIT_classes)) {
   best_perf <- 0
   conseq_worse <- 0
   best_size <- NULL
-  performances <- c()
   for (i in 1:length(sig_probes)) {
     signa <- list(names(sig_probes[1:i]))
     
     perf <- pred_perf(signa, class)
     print(sprintf("%s, %d:  %f", class, i, perf))
-    performances[i] <- perf
+    performances <- rbind(performances, t(c(class, i, perf)))
     
     if (perf <= best_perf) {
       conseq_worse <- conseq_worse + 1
@@ -104,17 +103,27 @@ for (class in unique(CIT_classes)) {
     }
   }
   signatures[[class]] <- list(names(sig_probes[1:best_size]))
-  perf_collect[[class]] <- performances
 }
 
+df <- data.frame(performances)
+colnames(df) <- c("Subtype", "Sig_len", "Perf")
+df$Perf <- as.numeric(as.character(df$Perf))
+df$Sig_len <- as.numeric(as.character(df$Sig_len))
 
-for (class in unique(CIT_classes)) {
-  df <- perf_collect[[class]]
-  ggplot(aes(x = length(df), y = df)) +
-    geom_line()
-  
-}
+df %>% 
+  ggplot(aes(x = Sig_len,
+                 y = Perf,
+                 color = Subtype)) +
+  geom_line() + 
+  labs(title = class)
 
+write.table("54675", file = "data/help.gct", append = T, eol = "\t", row.names = F, col.names = F, quote = F)
+write.table("355", file = "data/help.gct", append = T, row.names = F, col.names = F, quote = F)
+
+
+df <- rownames_to_column(data.frame(CIT_full), var = "NAME")
+df$Description <- NA
+df <- df %>% relocate(description, .after = NAME)
 
 
 # for each class

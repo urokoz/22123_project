@@ -20,10 +20,10 @@ df <- df %>% relocate(Description, .after = NAME)
 write("#1.2", file = "data/_raw/CIT_table.gct")
 write.table("54675", file = "data/_raw/CIT_table.gct", append = T, eol = "\t", row.names = F, col.names = F, quote = F)
 write.table("355", file = "data/_raw/CIT_table.gct", append = T, row.names = F, col.names = F, quote = F)
-write.table(df, file = "data/_raw/CIT_table.gct", append = T, row.names = F, col.names = T, quote = F)
+write.table(df, file = "data/_raw/CIT_table.gct", append = T, sep = "\t", row.names = F, col.names = T, quote = F)
 
 # calculate the score 
-estimateScore(input.ds = 'data/_raw/CIT_gct',
+estimateScore(input.ds = 'data/_raw/CIT_table.gct',
               output.ds = 'data/_raw/CIT_scores.gct',
               platform = c("affymetrix"))
 
