@@ -79,7 +79,8 @@ for (class in unique(CIT_classes)) {
   
   enrich <- rbind(enrich, gsva(CIT_full, 
                  signa,
-                 method="ssgsea"))
+                 method="ssgsea", 
+                 ssgsea.norm = F))
   
 }
 rownames(enrich) <- unique(CIT_classes)

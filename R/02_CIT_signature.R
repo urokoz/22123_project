@@ -70,7 +70,8 @@ pred_perf <- function(signa, class) {
   enrich <- gsva(CIT_full,
                  signa,
                  method="ssgsea",
-                 ssgsea.norm = F)
+                 ssgsea.norm = F,
+                 verbose=F)
   return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
 }
 
@@ -85,15 +86,15 @@ for (class in unique(CIT_classes)) {
   best_size <- NULL
   performances <- c()
   for (i in 1:length(sig_probes)) {
-    print(sprintf("%s   %d", class, i))
     signa <- list(names(sig_probes[1:i]))
     
     perf <- pred_perf(signa, class)
+    print(sprintf("%s, %d:  %f", class, i, perf))
     performances[i] <- perf
     
     if (perf <= best_perf) {
       conseq_worse <- conseq_worse + 1
-      if (conseq_worse == 5) {
+      if (conseq_worse == 25) {
         break
       }
     } else {
@@ -106,8 +107,13 @@ for (class in unique(CIT_classes)) {
   perf_collect[[class]] <- performances
 }
 
-signa <- list(names(FC_lists[[class]][1:50]))
 
+for (class in unique(CIT_classes)) {
+  df <- perf_collect[[class]]
+  ggplot(aes(x = length(df), y = df)) +
+    geom_line()
+  
+}
 
 
 
