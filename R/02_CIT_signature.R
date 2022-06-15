@@ -39,6 +39,7 @@ for (class in unique(CIT_classes)) {
 }
 
 save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
+load("data/CIT_signif_subtype_genes.Rdata")
 
 
 ## Calculate foldchange signatures
@@ -52,15 +53,16 @@ for (class in unique(CIT_classes)) {
     subtype_median <- median(CIT_full[probe, CIT_classes == class])
     rest_median <- median(CIT_full[probe, CIT_classes != class])
     
-    FC_list[[probe]] <- log2(subtype_median/rest_median)
+    FC_list <- rbind(FC_list, c(probe, log2(subtype_median/rest_median)))
     
   }
-  
-  signa <- sort(FC_list, decreasing = T)
+  colnames(FC_list) <- c("probe", "FC")
+  FC_list <- data.frame(FC_list)
+  signa <- arrange(data.frame(FC_list), desc(FC))
   
   file_name <- sprintf("data/ranked_CIT_%s.txt", class)
   
-  write(names(signa), file = file_name)
+  write(signa$probe, file = file_name)
   
   FC_lists[[class]] <- signa
   
@@ -79,13 +81,13 @@ signatures <- c()
 performances <- c()
 
 for (class in unique(CIT_classes)) {
-  sig_probes <- FC_lists[[class]]
+  sig_probes <- FC_lists[[class]]$probe
   
   best_perf <- 0
   conseq_worse <- 0
   best_size <- NULL
   for (i in 1:length(sig_probes)) {
-    signa <- list(names(sig_probes[1:i]))
+    signa <- list(sig_probes[1:i])
     
     perf <- pred_perf(signa, class)
     print(sprintf("%s, %d:  %f", class, i, perf))
@@ -102,8 +104,10 @@ for (class in unique(CIT_classes)) {
       best_size <- i
     }
   }
-  signatures[[class]] <- list(names(sig_probes[1:best_size]))
+  signatures[[class]] <- list(sig_probes[1:best_size])
 }
+
+save(signatures, file = "data/signatures.Rdata")
 
 df <- data.frame(performances)
 colnames(df) <- c("Subtype", "Sig_len", "Perf")
@@ -117,14 +121,29 @@ df %>%
   geom_line() + 
   labs(title = class)
 
-write.table("54675", file = "data/help.gct", append = T, eol = "\t", row.names = F, col.names = F, quote = F)
-write.table("355", file = "data/help.gct", append = T, row.names = F, col.names = F, quote = F)
+
+enrich <- c()
+for (class in unique(CIT_classes)) {
+  signa <- signatures[[class]]
+  
+  enrich <- rbind(enrich, gsva(CIT_full, 
+                               signa,
+                               method="ssgsea", 
+                               ssgsea.norm = T))
+  
+}
+rownames(enrich) <- unique(CIT_classes)
 
 
-df <- rownames_to_column(data.frame(CIT_full), var = "NAME")
-df$Description <- NA
-df <- df %>% relocate(description, .after = NAME)
+# For each sample, the signature with the highst enrichment corresponds to the subtype you assign to the given sample
+name_max <- function(column) {
+  subtype <- names(column)[which.max(column)]
+  return(subtype)
+}
 
+pred_class <- apply(enrich, 2, name_max)
+
+mean(CIT_classes == pred_class)
 
 # for each class
 #   for i in sig probe 
