@@ -9,10 +9,10 @@ install.packages("estimate", repos=rforge, dependencies=TRUE)
 library('estimate')
 library('tidyverse')
 
-prob_extimate <- read.table('data/_raw/CIT_table.txt')
 
 # transform the file into a GCT format 
 load("data/_raw/CIT_data.Rdata")
+load('data/_raw/Bordet.rdata')
 df <- rownames_to_column(data.frame(CIT_full),var = 'NAME')
 df$Description <- NA
 df <- df %>% relocate(Description, .after = NAME)
@@ -25,8 +25,8 @@ write.table(df, file = "data/_raw/CIT_table.gct", append = T,sep = '\t', row.nam
 # calculate the score 
 estimateScore(input.ds = 'data/_raw/CIT_table.gct',
               output.ds = 'data/_raw/CIT_scores.gct',
-              platform = c("affymetrix"))
+              platform = c("affymetrix",'illumina','agilent'))
 
-# read and tidy the output file
+# read and tidy the output file 
 
 
