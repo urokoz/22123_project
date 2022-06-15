@@ -12,6 +12,7 @@ source("R/99_func_file.R")
 
 # transform the file into a GCT format 
 load("data/_raw/CIT_data.Rdata")
+load("data/_raw/Bordet.rdata")
 
 df_master <- probe_to_gene("CIT", "max")
 df <- df_master[2:nrow(df_master),]
@@ -29,7 +30,23 @@ estimateScore(input.ds = 'data/_raw/CIT_genes.gct',
               output.ds = 'data/_raw/CIT_scores.gct',
               platform = c("affymetrix"))
 
-
-write.table(df$NAME, file = "regex.test", row.names = F, col.names = F, quote = F)
 # read and tidy the output file
+purity_data <- read_tsv('data/_raw/CIT_scores.gct', skip = 2)
 
+df <- rownames_to_column(df, var = "NAME")
+
+purity_expr <- df %>% 
+  pivot_longer(cols = !NAME, names_to = "Samples", values_to = "Expr") %>% 
+  pivot_wider(names_from = NAME, values_from = Expr) 
+
+purity_data <- purity_data[4, -2] %>% 
+  pivot_longer(!NAME, names_to = "Samples", values_to = "Purity") %>% 
+  select(!NAME)
+
+purity_expr <- purity_data %>% 
+  inner_join(purity_expr, by = "Samples")
+
+purity_expr %>% 
+  ggplot(aes(x = Purity,
+             y = A1CF)) +
+  geom_point()
