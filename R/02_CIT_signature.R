@@ -109,6 +109,12 @@ for (class in unique(CIT_classes)) {
 
 save(signatures, file = "data/signatures.Rdata")
 
+for (class in unique(CIT_classes)) {
+  file_name <- sprintf("data/FC_probe_signatures_CIT_%s.txt", class)
+  write(signatures[[class]], file = file_name)
+  
+}
+
 df <- data.frame(performances)
 colnames(df) <- c("Subtype", "Sig_len", "Perf")
 df$Perf <- as.numeric(as.character(df$Perf))
