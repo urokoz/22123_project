@@ -39,7 +39,7 @@ for (class in unique(CIT_classes)) {
 }
 
 save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
-load("data/CIT_signif_subtype_genes.Rdata")
+# load("data/CIT_signif_subtype_genes.Rdata")
 
 
 ## Calculate foldchange signatures

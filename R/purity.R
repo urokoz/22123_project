@@ -43,10 +43,12 @@ purity_data <- purity_data[4, -2] %>%
   pivot_longer(!NAME, names_to = "Samples", values_to = "Purity") %>% 
   select(!NAME)
 
+
 purity_expr <- purity_data %>% 
   inner_join(purity_expr, by = "Samples")
 
+
 purity_expr %>% 
   ggplot(aes(x = Purity,
-             y = A1CF)) +
+             y = AACS)) +
   geom_point()
