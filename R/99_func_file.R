@@ -11,6 +11,7 @@ probe_to_gene <- function(data, method) {
   if (data == "bordet") {
     Bordet_array_df <- data.frame("Probe.Set.ID" = row.names(Bordet_array), Bordet_array)
     Bordet_df_joined <- Bordet_annot %>%
+      mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>% 
       select(Probe.Set.ID, Gene.Symbol) %>% 
       inner_join(Bordet_array_df, by = "Probe.Set.ID")
     
@@ -45,6 +46,7 @@ probe_to_gene <- function(data, method) {
   if (data == "CIT") {
     CIT_array_df <- data.frame("Probe.Set.ID" = row.names(CIT_full), CIT_full)
     CIT_df_joined <- Bordet_annot %>%
+      mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
       select(Probe.Set.ID, Gene.Symbol) %>% 
       inner_join(CIT_array_df, by = "Probe.Set.ID")
     
