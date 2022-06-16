@@ -32,17 +32,21 @@ estimateScore(input.ds = 'data/_raw/CIT_genes.gct',
               platform = c("affymetrix"))
 
 # read and tidy the output file
-purity_data <- read_tsv('data/_raw/CIT_scores.gct', skip = 2)
-
 df <- rownames_to_column(df, var = "NAME")
 
 purity_expr <- df %>% 
   pivot_longer(cols = !NAME, names_to = "Samples", values_to = "Expr") %>% 
   pivot_wider(names_from = NAME, values_from = Expr) 
 
+purity_data <- read_tsv('data/_raw/CIT_scores.gct', skip = 2)
+
 purity_data <- purity_data[4, -2] %>% 
   pivot_longer(!NAME, names_to = "Samples", values_to = "Purity") %>% 
   select(!NAME)
+
+test <- data.frame(CIT_classes) %>% 
+  rownames_to_column(var = "Samples") %>% 
+  inner_join(purity_data, by = "Samples")
 
 
 purity_expr_master <- purity_data %>% 

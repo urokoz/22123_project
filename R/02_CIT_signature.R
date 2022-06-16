@@ -140,46 +140,26 @@ df %>%
   labs(title = class)
 
 
-enrich <- c()
-for (class in unique(CIT_classes)) {
-  signa <- signatures[[class]]
-  
-  enrich <- rbind(enrich, gsva(CIT_full, 
-                               signa,
-                               method="ssgsea", 
-                               ssgsea.norm = T))
-  
-}
-rownames(enrich) <- unique(CIT_classes)
-
-
-# For each sample, the signature with the highst enrichment corresponds to the subtype you assign to the given sample
+# For each sample, the signature with the highest enrichment corresponds to the subtype you assign to the given sample
 name_max <- function(column) {
   subtype <- names(column)[which.max(column)]
   return(subtype)
 }
 
+enrich <- c()
+for (class in c("normL", "lumA", "lumB", "mApo", "basL", "lumC")) {
+  signa <- signatures[[class]]
+  
+  enrich <- rbind(enrich, gsva(CIT_full, 
+                               signa,
+                               method="ssgsea", 
+                               ssgsea.norm = F))
+  
+}
+rownames(enrich) <- c("normL", "lumA", "lumB", "mApo", "basL", "lumC")
+
 pred_class <- apply(enrich, 2, name_max)
 
 mean(CIT_classes == pred_class)
 
-# for each class
-#   for i in sig probe 
-#     define signature
-#     
-#     run performace (ssgsea)
-#     
-#     save performance 
-#     
-#     save i if best performance
-#     
-#     if worse 5 x in row 
-#       break
-#   
-#   save performace history
-#   save best signature for class
-#   
-# plot performances 
-# 
-# run collective performance
 
