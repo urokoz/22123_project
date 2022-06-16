@@ -137,7 +137,7 @@ df %>%
                  y = Perf,
                  color = Subtype)) +
   geom_line() + 
-  labs(title = class)
+  labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
 
 
 enrich <- c()
