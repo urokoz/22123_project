@@ -131,12 +131,13 @@ save(signatures, file = "data/signatures.Rdata")
 load("data/signatures.Rdata")
 
 for (class in unique(CIT_classes)) {
-  singa <- data.frame(Probe.Set.ID = signatures[[class]])
+  signa <- data.frame(signatures[[class]])
+  colnames(signa) <- c("Probe.Set.ID")
   
   df_joined <- Bordet_annot %>%
     select(Probe.Set.ID, Gene.Symbol) %>% 
     mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
-    inner_join(singa, by = "Probe.Set.ID") %>% 
+    inner_join(signa, by = "Probe.Set.ID") %>% 
     filter(Gene.Symbol != "---")
   
   file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
