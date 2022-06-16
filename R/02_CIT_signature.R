@@ -80,6 +80,23 @@ pred_perf <- function(signa, class) {
   return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
 }
 
+for (class in unique(CIT_classes)) {
+  sig_probes <- FC_lists[[class]]
+  colnames(sig_probes) <- c("Probe.Set.ID", "FC")
+  
+  df_joined <- Bordet_annot %>%
+    select(Probe.Set.ID, Gene.Symbol) %>% 
+    mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
+    inner_join(sig_probes, by = "Probe.Set.ID") %>% 
+    filter(Gene.Symbol != "---")
+  
+  file_name <- sprintf("data/ranked_CIT_%s_genes.txt", class)
+  
+  write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
+  
+}
+
+
 signatures <- c()
 performances <- c()
 
@@ -114,8 +131,17 @@ save(signatures, file = "data/signatures.Rdata")
 load("data/signatures.Rdata")
 
 for (class in unique(CIT_classes)) {
-  file_name <- sprintf("data/FC_probe_signatures_CIT_%s.txt", class)
-  write(signatures[[class]], file = file_name)
+  singa <- data.frame(Probe.Set.ID = signatures[[class]])
+  
+  df_joined <- Bordet_annot %>%
+    select(Probe.Set.ID, Gene.Symbol) %>% 
+    mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
+    inner_join(singa, by = "Probe.Set.ID") %>% 
+    filter(Gene.Symbol != "---")
+  
+  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
+  
+  write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
   
 }
 
