@@ -44,11 +44,25 @@ purity_data <- purity_data[4, -2] %>%
   select(!NAME)
 
 
-purity_expr <- purity_data %>% 
+purity_expr_master <- purity_data %>% 
   inner_join(purity_expr, by = "Samples")
 
 
-purity_expr %>% 
+purity_expr_master %>% 
   ggplot(aes(x = Purity,
              y = AACS)) +
   geom_point()
+
+
+lin_mdl <- purity_expr_master %>% 
+  select(!Samples) %>% 
+  pivot_longer(!Purity, names_to = "Gene", values_to = "Expression") %>% 
+  group_by(Gene) %>% 
+  nest() %>% 
+  ungroup() %>% 
+  mutate(mu = map(data,
+                  ~glm(Purity ~ Expression,
+                       data = .x)))
+
+
+

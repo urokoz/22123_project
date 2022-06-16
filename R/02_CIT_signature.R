@@ -14,6 +14,9 @@ library("tidyverse")
 # CIT_class contains the subtypes
 load("data/_raw/CIT_data.Rdata")
 load("data/_raw/Bordet.rdata")
+source("R/99_func_file.R")
+
+CIT_full <- probe_to_gene("CIT", "median")
 
 
 # Calculate which genes are significantly different for each subtype
@@ -108,6 +111,7 @@ for (class in unique(CIT_classes)) {
 }
 
 save(signatures, file = "data/signatures.Rdata")
+load("data/signatures.Rdata")
 
 for (class in unique(CIT_classes)) {
   file_name <- sprintf("data/FC_probe_signatures_CIT_%s.txt", class)

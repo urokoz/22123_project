@@ -79,7 +79,7 @@ probe_to_gene <- function(data, method) {
     }
     
   }
-  return(final_table)
+  return(final_table[2:nrow(final_table),])
 }
 
 #test
