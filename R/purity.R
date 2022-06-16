@@ -53,6 +53,8 @@ purity_expr_master <- purity_data %>%
   inner_join(purity_expr, by = "Samples")
 
 
+
+
 purity_expr_master %>% 
   ggplot(aes(x = Purity,
              y = AACS)) +
@@ -80,4 +82,6 @@ purity_corrected_CIT <- lin_mdl %>%
 
 save(purity_corrected_CIT, file = "data/CIT_purity_corrected.Rdata")
   
+
+test %>% boxplot(CIT_classes, Purity, "Purity of all subtypes", "Subtype", "Purity")
 

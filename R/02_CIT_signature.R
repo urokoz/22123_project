@@ -137,7 +137,7 @@ df %>%
                  y = Perf,
                  color = Subtype)) +
   geom_line() + 
-  labs(title = class)
+  labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
 
 
 # For each sample, the signature with the highest enrichment corresponds to the subtype you assign to the given sample
