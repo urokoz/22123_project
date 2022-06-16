@@ -120,4 +120,24 @@ signature_procsess <- function(df, specification, method) {
 }
 
 
+boxplot <- function(df, variable_dis, variable_con, title, xlab, ylab) {
+  
+  plt <- ggplot(df, mapping = aes(y = {{variable_con}},
+                                  x = {{variable_dis}}, 
+                                  fill = {{variable_dis}})) + 
+    geom_violin() + 
+    geom_boxplot(width = 0.05,
+                 color = "black",
+                 fill = "white",
+                 outlier.shape = NA) +
+    labs(title = title, 
+         x = xlab,
+         y = ylab) +
+    theme_classic() +
+    theme(legend.position="none")
+  
+  return(plt)
+}
+
+
 
