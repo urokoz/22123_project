@@ -5,7 +5,7 @@
 #### Technical University of Denmark
 
 ## Load necessary packages
-library(GSVA)
+library('GSVA')
 library("tidyverse")
 
 ## Load expression data (NOTE: this is microarray data, not RNA-seq!)
@@ -16,10 +16,11 @@ load("data/_raw/CIT_data.Rdata")
 load("data/_raw/Bordet.rdata")
 source("R/99_func_file.R")
 
-CIT_full <- probe_to_gene("CIT", "median")
-
+#CIT_full <- probe_to_gene("CIT", "max")
+#CIT_full <- CIT_full %>% column_to_rownames(var = "Gene.Symbol")
 
 # Calculate which genes are significantly different for each subtype
+
 signif_genes <- c()
 
 for (class in unique(CIT_classes)) {
@@ -28,9 +29,8 @@ for (class in unique(CIT_classes)) {
   for (probe in rownames(CIT_full)) {
     is_class <- CIT_full[probe, CIT_classes == class]
     rest <- CIT_full[probe, CIT_classes != class]
-    
-    res <- wilcox.test(x = is_class,
-                       y = rest)
+    res <- wilcox.test(x = as.numeric(is_class),
+                       y = as.numeric(rest))
     results[[probe]] <- res$p.value
     
   }
@@ -53,8 +53,8 @@ for (class in unique(CIT_classes)) {
   FC_list <- c()
   
   for (probe in names(results)) {
-    subtype_median <- median(CIT_full[probe, CIT_classes == class])
-    rest_median <- median(CIT_full[probe, CIT_classes != class])
+    subtype_median <- median(as.numeric(CIT_full[probe, CIT_classes == class]))
+    rest_median <- median(as.numeric(CIT_full[probe, CIT_classes != class]))
     
     FC_list <- rbind(FC_list, c(probe, log2(subtype_median/rest_median)))
     
@@ -63,9 +63,9 @@ for (class in unique(CIT_classes)) {
   FC_list <- data.frame(FC_list)
   signa <- arrange(data.frame(FC_list), desc(FC))
   
-  file_name <- sprintf("data/ranked_CIT_%s.txt", class)
+  file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
   
-  write(signa$probe, file = file_name)
+  write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
   
   FC_lists[[class]] <- signa
   
