@@ -8,6 +8,7 @@ rforge <- "http://r-forge.r-project.org"
 install.packages("estimate", repos=rforge, dependencies=TRUE)
 library('estimate')
 library('tidyverse')
+library("broom")
 source("R/99_func_file.R")
 
 # transform the file into a GCT format 
@@ -55,14 +56,24 @@ purity_expr_master %>%
 
 
 lin_mdl <- purity_expr_master %>% 
-  select(!Samples) %>% 
-  pivot_longer(!Purity, names_to = "Gene", values_to = "Expression") %>% 
+  pivot_longer(!c(Samples, Purity), names_to = "Gene", values_to = "Expression") %>% 
   group_by(Gene) %>% 
   nest() %>% 
   ungroup() %>% 
   mutate(mu = map(data,
-                  ~glm(Purity ~ Expression,
+                  ~glm(Expression ~ Purity,
                        data = .x)))
 
+purity_corrected_CIT <- lin_mdl %>%
+  mutate(resi = map(mu, residuals),
+         expected_expr = map(mu,
+                             ~predict(., data.frame(Purity = 1)))) %>% 
+  unnest(c(data, resi, expected_expr)) %>% 
+  select(!mu) %>% 
+  mutate(corr_expr = (resi + expected_expr)) %>% 
+  select(Samples, Gene, corr_expr) %>% 
+  pivot_wider(names_from = Samples, values_from = corr_expr)
 
+save(purity_corrected_CIT, file = "data/CIT_purity_corrected.Rdata")
+  
 
