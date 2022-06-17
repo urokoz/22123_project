@@ -24,7 +24,6 @@ source("R/99_func_file.R")
 
 # Calculate which genes are significantly different for each subtype
 
-
 significant_genes <- function(expr_data, classes) {
   
   signif_genes <- c()
