@@ -41,8 +41,8 @@ for (class in unique(CIT_classes)) {
   
 }
 
-save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
-# load("data/CIT_signif_subtype_genes.Rdata")
+save(signif_genes, file = "data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
+# load("data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
 
 
 ## Calculate foldchange signatures
@@ -63,7 +63,7 @@ for (class in unique(CIT_classes)) {
   FC_list <- data.frame(FC_list)
   signa <- arrange(data.frame(FC_list), desc(FC))
   
-  file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
+  file_name <- sprintf("data/mann_whitney_u_test/ranked_CIT_%s_probes.txt", class)
   
   write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
   
@@ -110,8 +110,8 @@ for (class in c("lumB", "lumC", "basL")) {
   signatures[[class]] <- list(sig_probes[1:best_size])
 }
 
-save(signatures, file = "data/signatures.Rdata")
-load("data/signatures.Rdata")
+save(signatures, file = "data/mann_whitney_u_test/signatures.Rdata")
+load("data/mann_whitney_u_test/signatures.Rdata")
 
 for (class in unique(CIT_classes)) {
   signa <- data.frame(signatures[[class]])
@@ -123,10 +123,11 @@ for (class in unique(CIT_classes)) {
   inner_join(signa, by = "Probe.Set.ID") %>% 
   filter(Gene.Symbol != "---")
   
-  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
+  file_name <- sprintf("data/mann_whitney_u_test/signature_CIT_%s_genes.txt", class)
   write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
 }
   
+
 df <- data.frame(performances)
 colnames(df) <- c("Subtype", "Sig_len", "Perf")
 df$Perf <- as.numeric(as.character(df$Perf))
