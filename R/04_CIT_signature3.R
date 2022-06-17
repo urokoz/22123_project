@@ -55,13 +55,13 @@ for (class in unique(CIT_classes)) {
   diff_class[[class]] <- arrange(mean_class, desc(diff))
 }
 
-pred_perf <- function(dataset, signa, class) {
+pred_perf <- function(dataset, signa, classes, class) {
   enrich <- gsva(dataset,
                  signa,
                  method="ssgsea",
                  ssgsea.norm = F,
                  verbose=F)
-  return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
+  return(ks.test(enrich[classes == class], enrich[classes != class])$statistic)
 }
 
 signatures <- c()
@@ -76,7 +76,7 @@ for (class in c("normL", "lumA", "lumB", "lumC", "basL", "mApo")) {
   for (i in 1:length(sig_probes)) {
     signa <- list(sig_probes[1:i])
     
-    perf <- pred_perf(CIT_full, signa, class)
+    perf <- pred_perf(CIT_full, signa, CIT_classes, class)
     print(sprintf("%s, %d:  %f", class, i, perf))
     performances <- rbind(performances, t(c(class, i, perf)))
     
@@ -109,17 +109,17 @@ df %>%
   labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
 
 
-class <- "basL"
 
-test_class <- data.frame(class = class, val = CIT_full[rownames(diff_class[[class]])[1], CIT_classes == class])
-test_rest <- data.frame(class = "rest", val = CIT_full[rownames(diff_class[[class]])[1], CIT_classes != class])
+## testing and visualization of difference in gene expression for one subtype vs. rest for one gene
+# class <- "basL"
+# gene_number <- 1
+#
+# test_class <- data.frame(class = class, val = CIT_full[rownames(diff_class[[class]])[gene_number], CIT_classes == class])
+# test_rest <- data.frame(class = "rest", val = CIT_full[rownames(diff_class[[class]])[gene_number], CIT_classes != class])
+# 
+# rbind(test_class, test_rest) %>% 
+#   boxplot(class, val, "Expression for subtype", "Subtype", "Expression")
 
-rbind(test_class, test_rest) %>% 
-  boxplot(class, val, "Expression for subtype", "Subtype", "Expression")
-
-
-john <- read_tsv("data/_raw/TCGA.GBM.sampleMap_HiSeqV2.gz")
-gbm_pheno <- read_tsv("data/_raw/TCGA.GBM.sampleMap_GBM_clinicalMatrix")
 
 # function version of this code:
 rank_diff_fnc <- function(dataset, classes) {
@@ -152,7 +152,7 @@ rank_diff_fnc <- function(dataset, classes) {
     mean_class$rank <- rank_vector
     mean_class$diff <- dist_vector
     
-    diff_class[[class]] <- arrange(mean_class, desc(diff))
+    diff_class[[class]] <- rownames(arrange(mean_class, desc(diff)))
   }
   return(diff_class)
 }
@@ -162,8 +162,8 @@ eval_signatures <- function(dataset, genes_of_interest, classes) {
   signatures <- c()
   performances <- c()
   
-  for (class in c("normL", "lumA", "lumB", "lumC", "basL", "mApo")) {
-    sig_probes <- rownames(diff_class[[class]])
+  for (class in unique(classes)) {
+    sig_probes <- genes_of_interest[[class]]
     
     best_perf <- 0
     conseq_worse <- 0
@@ -171,7 +171,7 @@ eval_signatures <- function(dataset, genes_of_interest, classes) {
     for (i in 1:length(sig_probes)) {
       signa <- list(sig_probes[1:i])
       
-      perf <- pred_perf(CIT_full, signa, class)
+      perf <- pred_perf(dataset, signa, classes, class)
       print(sprintf("%s, %d:  %f", class, i, perf))
       performances <- rbind(performances, t(c(class, i, perf)))
       
@@ -188,8 +188,12 @@ eval_signatures <- function(dataset, genes_of_interest, classes) {
     }
     signatures[[class]] <- list(sig_probes[1:best_size])
   }
+  return(signatures)
 }
 
+diff_test <- rank_diff_fnc(CIT_full, CIT_classes)
+
+test_signatures <- calc_signatures(CIT_full, diff_test, CIT_classes)
 
 
 

@@ -1,6 +1,4 @@
 library(tidyverse)
-library(parallel)
-library(hash)
 
 ##function for conversion of probe ID to gene ID 
 #input: 1. argument: string of dataframe; either "bordet" or "CIT", 2. argument: string with method (max, mean or median) 
@@ -139,9 +137,9 @@ probeID_to_geneID <- function(df) {
   return(geneID)
 }
 
-df <- load()
-read.delim("data/top_or_bottom_25/normL_rest.txt")
-probeID_to_geneID()
+# df <- load()
+# read.delim("data/top_or_bottom_25/normL_rest.txt")
+# probeID_to_geneID()
 
 significant_genes <- function(expr_data, classes) {
   
@@ -167,11 +165,11 @@ significant_genes <- function(expr_data, classes) {
   return(signif_genes)
 }
 
-save(significant_genes(CIT_full, CIT_classes), file = "data/CIT_signif_subtype_genes.Rdata")
-save(significant_genes(GBM_expr, GBM_clinical$GeneExp_Subtype), file = "data/GBM_signif_subtype_genes.Rdata")
+# save(significant_genes(CIT_full, CIT_classes), file = "data/CIT_signif_subtype_genes.Rdata")
+# save(significant_genes(GBM_expr, GBM_clinical$GeneExp_Subtype), file = "data/GBM_signif_subtype_genes.Rdata")
 
 
-FC_calc <- function(expr_data, classes) {
+FC_calc <- function(expr_data, signif_genes, classes) {
   
   FC_lists <- c()
   for (class in unique(classes)) {
@@ -194,39 +192,42 @@ FC_calc <- function(expr_data, classes) {
     
     write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
     
-    FC_lists[[class]] <- signa
+    FC_lists[[class]] <- signa$probes
     
   }
   return(FC_lists)
 }
 
 
-
-pred_perf <- function(signa, class) {
-  enrich <- gsva(CIT_full,
+pred_perf <- function(data, signa, classes, class) {
+  enrich <- gsva(data,
                  signa,
                  method="ssgsea",
                  ssgsea.norm = F,
                  verbose=F)
-  return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
+  return(ks.test(enrich[classes == class], enrich[classes != class])$statistic)
 }
 
+dataset <- CIT_full
+interest_genes_list <- diff_test
+classes <- CIT_classes
+i <- 1
 
-calc_signatures <- function(FC_lists, classes) {
+calc_signatures <- function(data, interest_genes_list, classes) {
   
   signatures <- c()
   performances <- c()
   
   for (class in unique(classes)) {
-    sig_probes <- FC_lists[[class]]$probe
+    interest_genes <- interest_genes_list[[class]]
     
     best_perf <- 0
     conseq_worse <- 0
     best_size <- NULL
-    for (i in 1:length(sig_probes)) {
-      signa <- list(sig_probes[1:i])
+    for (i in 1:length(interest_genes)) {
+      signa <- list(interest_genes[1:i])
       
-      perf <- pred_perf(signa, class)
+      perf <- pred_perf(data, signa, classes, class)
       print(sprintf("%s, %d:  %f", class, i, perf))
       performances <- rbind(performances, t(c(class, i, perf)))
       
@@ -241,7 +242,7 @@ calc_signatures <- function(FC_lists, classes) {
         best_size <- i
       }
     }
-    signatures[[class]] <- list(sig_probes[1:best_size])
+    signatures[[class]] <- list(interest_genes[1:best_size])
   }
   return(signatures)
 }
@@ -253,6 +254,39 @@ name_max <- function(column) {
   return(subtype)
 }
 
-
+rank_diff_fnc <- function(dataset, classes) {
+  diff_class <- c()
+  for (class in unique(classes)) {
+    # classify of the all subtypes to the rest      
+    is_class <- dataset[,classes == class]
+    rest <- dataset[, classes != class]
+    
+    mean_class <- data.frame(apply(is_class, 1, mean))
+    mean_rest  <- data.frame(apply(rest, 1, mean))
+    
+    colnames(mean_class) <- c('mean_class') 
+    colnames(mean_rest) <- c('mean_rest')
+    # range the expression of them
+    mean_class <- arrange(mean_class,desc(mean_class))
+    mean_rest <-arrange(mean_rest,desc(mean_rest))
+    
+    mean_class_names <- rownames(mean_class)
+    mean_rest_names <- rownames(mean_rest)
+    
+    match_idx <- match(mean_class_names, mean_rest_names)
+    
+    rank_vector <- c()
+    for (i in 1:length(match_idx)) {
+      rank_vector[i] <- as.integer(i)
+      dist_vector[i] <- match_idx[i] - as.integer(i)
+    }
+    
+    mean_class$rank <- rank_vector
+    mean_class$diff <- dist_vector
+    
+    diff_class[[class]] <- rownames(arrange(mean_class, desc(diff)))
+  }
+  return(diff_class)
+}
 
 
