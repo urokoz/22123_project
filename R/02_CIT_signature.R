@@ -14,6 +14,9 @@ library("tidyverse")
 # CIT_class contains the subtypes
 load("data/_raw/CIT_data.Rdata")
 load("data/_raw/Bordet.rdata")
+GBM_expr <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_HiSeqV2")
+GBM_clinical <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_GBM_clinicalMatrix")
+GBM_genes <- read_table("data/_raw/gbm_subtype_genes.txt")
 source("R/99_func_file.R")
 
 #CIT_full <- probe_to_gene("CIT", "max")
@@ -21,55 +24,108 @@ source("R/99_func_file.R")
 
 # Calculate which genes are significantly different for each subtype
 
-signif_genes <- c()
-
-for (class in unique(CIT_classes)) {
+significant_genes <- function(expr_data, classes) {
   
-  results <- c()
-  for (probe in rownames(CIT_full)) {
-    is_class <- CIT_full[probe, CIT_classes == class]
-    rest <- CIT_full[probe, CIT_classes != class]
-    res <- wilcox.test(x = as.numeric(is_class),
-                       y = as.numeric(rest))
-    results[[probe]] <- res$p.value
+  signif_genes <- c()
+  unique_classes <- unique(classes)
+  for (class in unique(classes)) {
+    
+    results <- c()
+    for (probe in rownames(expr_data)) {
+      is_class <- expr_data[probe, classes == class]
+      rest <- expr_data[probe, classes != class]
+      res <- wilcox.test(x = as.numeric(is_class),
+                         y = as.numeric(rest))
+      results[[probe]] <- res$p.value
+      
+    }
+    results <- p.adjust(results)
+    results <- results[results < 0.05]
+    
+    signif_genes[[class]] <- results
     
   }
-  results <- p.adjust(results)
-  results <- results[results < 0.05]
-  
-  signif_genes[[class]] <- results
-  
+  return(signif_genes)
 }
 
-save(signif_genes, file = "data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
-# load("data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
+save(significant_genes(CIT_full, CIT_classes), file = "data/CIT_signif_subtype_genes.Rdata")
+save(significant_genes(GBM_expr, GBM_clinical$GeneExp_Subtype), file = "data/GBM_signif_subtype_genes.Rdata")
+# load("data/CIT_signif_subtype_genes.Rdata")
+
+#for (class in unique(CIT_classes)) {
+  
+ # results <- c()
+  #for (probe in rownames(CIT_full)) {
+   # is_class <- CIT_full[probe, CIT_classes == class]
+   # rest <- CIT_full[probe, CIT_classes != class]
+   # res <- wilcox.test(x = as.numeric(is_class),
+    #                   y = as.numeric(rest))
+    #results[[probe]] <- res$p.value
+    
+  #}
+  # results <- p.adjust(results)
+  # results <- results[results < 0.05]
+  
+  # signif_genes[[class]] <- results
+  
+#}
 
 
 ## Calculate foldchange signatures
-FC_lists <- c()
-for (class in unique(CIT_classes)) {
-  results <- signif_genes[[class]]
+
+FC_calc <- function(expr_data, classes) {
   
-  FC_list <- c()
-  
-  for (probe in names(results)) {
-    subtype_median <- median(as.numeric(CIT_full[probe, CIT_classes == class]))
-    rest_median <- median(as.numeric(CIT_full[probe, CIT_classes != class]))
+  FC_lists <- c()
+  for (class in unique(classes)) {
+    results <- signif_genes[[class]]
     
-    FC_list <- rbind(FC_list, c(probe, log2(subtype_median/rest_median)))
+    FC_list <- c()
+    
+    for (probe in names(results)) {
+      subtype_median <- median(as.numeric(expr_data[probe, classes == class]))
+      rest_median <- median(as.numeric(expr_data[probe, classes != class]))
+      
+      FC_list <- rbind(FC_list, c(probe, log2(subtype_median/rest_median)))
+      
+    }
+    colnames(FC_list) <- c("probe", "FC")
+    FC_list <- data.frame(FC_list)
+    signa <- arrange(data.frame(FC_list), desc(FC))
+    
+    file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
+    
+    write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
+    
+    FC_lists[[class]] <- signa
     
   }
-  colnames(FC_list) <- c("probe", "FC")
-  FC_list <- data.frame(FC_list)
-  signa <- arrange(data.frame(FC_list), desc(FC))
-  
-  file_name <- sprintf("data/mann_whitney_u_test/ranked_CIT_%s_probes.txt", class)
-  
-  write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
-  
-  FC_lists[[class]] <- signa
-  
+  return(FC_lists)
 }
+
+#FC_lists <- c()
+#for (class in unique(CIT_classes)) {
+#  results <- signif_genes[[class]]
+  
+#  FC_list <- c()
+  
+#  for (probe in names(results)) {
+#    subtype_median <- median(as.numeric(CIT_full[probe, CIT_classes == class]))
+#    rest_median <- median(as.numeric(CIT_full[probe, CIT_classes != class]))
+#    
+#    FC_list <- rbind(FC_list, c(probe, log2(subtype_median/rest_median)))
+    
+#  }
+#  colnames(FC_list) <- c("probe", "FC")
+#  FC_list <- data.frame(FC_list)
+#  signa <- arrange(data.frame(FC_list), desc(FC))
+  
+#  file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
+  
+#  write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
+  
+#  FC_lists[[class]] <- signa
+  
+#}
 
 pred_perf <- function(signa, class) {
   enrich <- gsva(CIT_full,
@@ -80,38 +136,73 @@ pred_perf <- function(signa, class) {
   return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
 }
 
-signatures <- c()
-performances <- c()
 
-for (class in c("lumB", "lumC", "basL")) {
-  sig_probes <- FC_lists[[class]]$probe
+calc_signatures <- function(FC_lists, classes) {
   
-  best_perf <- 0
-  conseq_worse <- 0
-  best_size <- NULL
-  for (i in 1:length(sig_probes)) {
-    signa <- list(sig_probes[1:i])
+  signatures <- c()
+  performances <- c()
+  
+  for (class in unique(classes)) {
+    sig_probes <- FC_lists[[class]]$probe
     
-    perf <- pred_perf(signa, class)
-    print(sprintf("%s, %d:  %f", class, i, perf))
-    performances <- rbind(performances, t(c(class, i, perf)))
-    
-    if (perf <= best_perf) {
-      conseq_worse <- conseq_worse + 1
-      if (conseq_worse == 25) {
-        break
+    best_perf <- 0
+    conseq_worse <- 0
+    best_size <- NULL
+    for (i in 1:length(sig_probes)) {
+      signa <- list(sig_probes[1:i])
+      
+      perf <- pred_perf(signa, class)
+      print(sprintf("%s, %d:  %f", class, i, perf))
+      performances <- rbind(performances, t(c(class, i, perf)))
+      
+      if (perf <= best_perf) {
+        conseq_worse <- conseq_worse + 1
+        if (conseq_worse == 25) {
+          break
+        }
+      } else {
+        conseq_worse <- 0
+        best_perf <- perf
+        best_size <- i
       }
-    } else {
-      conseq_worse <- 0
-      best_perf <- perf
-      best_size <- i
     }
+    signatures[[class]] <- list(sig_probes[1:best_size])
   }
-  signatures[[class]] <- list(sig_probes[1:best_size])
+  return(signatures)
 }
 
-save(signatures, file = "data/mann_whitney_u_test/signatures.Rdata")
-load("data/mann_whitney_u_test/signatures.Rdata")
+#signatures <- c()
+#performances <- c()
+
+#for (class in c("lumB", "lumC", "basL")) {
+#  sig_probes <- FC_lists[[class]]$probe
+  
+#  best_perf <- 0
+#  conseq_worse <- 0
+#  best_size <- NULL
+#  for (i in 1:length(sig_probes)) {
+#    signa <- list(sig_probes[1:i])
+    
+#    perf <- pred_perf(signa, class)
+#    print(sprintf("%s, %d:  %f", class, i, perf))
+#    performances <- rbind(performances, t(c(class, i, perf)))
+    
+#    if (perf <= best_perf) {
+#      conseq_worse <- conseq_worse + 1
+#      if (conseq_worse == 25) {
+#        break
+#      }
+#    } else {
+#      conseq_worse <- 0
+#      best_perf <- perf
+#      best_size <- i
+#    }
+#  }
+#  signatures[[class]] <- list(sig_probes[1:best_size])
+#}
+
+save(signatures, file = "data/signatures.Rdata")
+load("data/signatures.Rdata")
 
 for (class in unique(CIT_classes)) {
   signa <- data.frame(signatures[[class]])
@@ -123,11 +214,10 @@ for (class in unique(CIT_classes)) {
   inner_join(signa, by = "Probe.Set.ID") %>% 
   filter(Gene.Symbol != "---")
   
-  file_name <- sprintf("data/mann_whitney_u_test/signature_CIT_%s_genes.txt", class)
+  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
   write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
 }
   
-
 df <- data.frame(performances)
 colnames(df) <- c("Subtype", "Sig_len", "Perf")
 df$Perf <- as.numeric(as.character(df$Perf))

@@ -14,119 +14,30 @@ library("tidyverse")
 # CIT_class contains the subtypes
 load("data/_raw/CIT_data.Rdata")
 load("data/_raw/Bordet.rdata")
+GBM_expr <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_HiSeqV2")
+GBM_clinical <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_GBM_clinicalMatrix")
+GBM_genes <- read_table("data/_raw/gbm_subtype_genes.txt")
+source("R/99_func_file.R")
 
+GBM_transposed <- GBM_expr %>% 
+  as.data.frame() %>% 
+  t()
 
-# Calculate which genes are significantly different for each subtype
-signif_genes <- c()
+colnames(GBM_transposed) <- GBM_transposed[1, ]
+GBM_transposed <- GBM_transposed[-1, ] %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "sampleID")
 
-for (class in unique(CIT_classes)) {
-  
-  results <- c()
-  for (probe in rownames(CIT_full)) {
-    is_class <- CIT_full[probe, CIT_classes == class]
-    rest <- CIT_full[probe, CIT_classes != class]
-    
-    res <- wilcox.test(x = is_class,
-                       y = rest)
-    results[[probe]] <- res$p.value
-    
-  }
-  results <- p.adjust(results)
-  results <- results[results < 0.05]
-  
-  signif_genes[[class]] <- results
-  
-}
+GBM_classes <- GBM_transposed %>% 
+  inner_join(GBM_clinical, by = "sampleID") %>% 
+  select(GeneExp_Subtype) 
 
-save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
+GBM_classes <- GBM_classes$GeneExp_Subtype
 
+GBM_expr <- column_to_rownames(GBM_expr, var = "sample")
 
-## Calculate foldchange signatures
-FC_lists <- c()
-for (class in unique(CIT_classes)) {
-  results <- signif_genes[[class]]
-  
-  FC_list <- c()
-  
-  for (probe in names(results)) {
-    subtype_median <- median(CIT_full[probe, CIT_classes == class])
-    rest_median <- median(CIT_full[probe, CIT_classes != class])
-    
-    FC_list[[probe]] <- log2(subtype_median/rest_median)
-    
-  }
-  
-  signa <- sort(FC_list, decreasing = T)
-  
-  file_name <- sprintf("data/ranked_CIT_%s.txt", class)
-  
-  write(names(signa), file = file_name)
-  
-  FC_lists[[class]] <- signa
-  
-}
+#test_classes <- data.frame(samples = GBM_clinical$sampleID, subtypes = GBM_clinical$GeneExp_Subtype)
 
-pred_perf <- function(signa, class) {
-  enrich <- gsva(CIT_full,
-                 signa,
-                 method="ssgsea",
-                 ssgsea.norm = F)
-  return(ks.test(enrich[CIT_classes == class], enrich[CIT_classes != class])$statistic)
-}
+#test_classes <- column_to_rownames(test_classes, var = "samples")
 
-signatures <- c()
-perf_collect <- c()
-
-for (class in unique(CIT_classes)) {
-  sig_probes <- FC_lists[[class]]
-  
-  best_perf <- 0
-  conseq_worse <- 0
-  best_size <- NULL
-  performances <- c()
-  for (i in 1:length(sig_probes)) {
-    print(sprintf("%s   %d", class, i))
-    signa <- list(names(sig_probes[1:i]))
-    
-    perf <- pred_perf(signa, class)
-    performances[i] <- perf
-    
-    if (perf <= best_perf) {
-      conseq_worse <- conseq_worse + 1
-      if (conseq_worse == 5) {
-        break
-      }
-    } else {
-      conseq_worse <- 0
-      best_perf <- perf
-      best_size <- i
-    }
-  }
-  signatures[[class]] <- list(names(sig_probes[1:best_size]))
-  perf_collect[[class]] <- performances
-}
-
-signa <- list(names(FC_lists[[class]][1:50]))
-
-
-
-
-# for each class
-#   for i in sig probe 
-#     define signature
-#     
-#     run performace (ssgsea)
-#     
-#     save performance 
-#     
-#     save i if best performance
-#     
-#     if worse 5 x in row 
-#       break
-#   
-#   save performace history
-#   save best signature for class
-#   
-# plot performances 
-# 
-# run collective performance
+#test_classes2 <- as.character(test_classes[colnames(GBM_expr),])
