@@ -233,7 +233,7 @@ calc_signatures <- function(data, interest_genes_list, classes) {
       
       if (perf <= best_perf) {
         conseq_worse <- conseq_worse + 1
-        if (conseq_worse == 25) {
+        if (conseq_worse == 50) {
           break
         }
       } else {
