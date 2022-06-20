@@ -9,6 +9,7 @@
 
 #load('data/_raw/CIT_data.Rdata')
 #load('data/_raw/Bordet.rdata')
+load('')
 source("R/99_func_file.R")
 CIT_full <- probe_to_gene('CIT', 'mean')
 
