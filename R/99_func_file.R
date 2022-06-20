@@ -186,6 +186,7 @@ significant_genes <- function(expr_data, classes) {
 # class <- "Neural"
 # expr_data <- GBM_expr
 # classes <- GBM_classes
+# signif_genes <- signif_genes_GBM
 
 FC_calc <- function(expr_data, signif_genes, classes) {
   # calculate how much the significantly different genes changes from class to rest
@@ -194,6 +195,12 @@ FC_calc <- function(expr_data, signif_genes, classes) {
   FC_lists <- c()
   for (class in unique(classes)) {
     results <- signif_genes[[class]]
+    
+    if (length(results) < 1) {
+      print(sprintf("%s subtype does not have any significant genes.", class))
+      FC_lists[[class]] <- NULL
+      next
+    }
     
     FC_list <- c()
     
@@ -208,9 +215,9 @@ FC_calc <- function(expr_data, signif_genes, classes) {
     FC_list <- data.frame(FC_list)
     signa <- arrange(data.frame(FC_list), desc(FC))
     
-    file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
-    
-    write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
+    # file_name <- sprintf("data/ranked_CIT_%s_probes.txt", class)
+    # 
+    # write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
     
     FC_lists[[class]] <- signa$probe
     
@@ -251,6 +258,12 @@ calc_signatures <- function(data, interest_genes_list, classes) {
   for (class in unique(classes)) {
     interest_genes <- as.character(interest_genes_list[[class]])
     
+    if (is.null(interest_genes)) {
+      print(sprintf("%s subtype does not have any significant genes.", class))
+      signatures[[class]] <- NULL
+      next
+    }
+    
     best_perf <- 0
     conseq_worse <- 0
     best_size <- NULL
@@ -274,8 +287,8 @@ calc_signatures <- function(data, interest_genes_list, classes) {
     }
     signatures[[class]] <- list(interest_genes[1:best_size])
     
-    list <- list("signatures" = signatures, "performances" = performances)
   }
+  list <- list("signatures" = signatures, "performances" = performances)
   return(list)
 }
 

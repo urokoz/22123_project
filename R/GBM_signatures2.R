@@ -7,13 +7,6 @@
 ## the CIT_annot contains annotions of the 375 probes used for classification  
 ## the CIT class contains the subtypes of all the samples
 
-load('data/_raw/CIT_data.Rdata')
-load('data/_raw/Bordet.rdata')
-source("R/99_func_file.R")
-
-# load some necessary packages
-library('tidyverse')
-
 mean_expression(GBM_expr, GBM_classes)
 ## find the overlap of the genes that exist in both the top of the specifical class
 ## and the buttom of the rest.

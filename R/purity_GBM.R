@@ -59,7 +59,7 @@ lin_mdl <- purity_expr_master %>%
                   ~glm(Expression ~ Purity,
                        data = .x)))
 
-purity_corrected_CIT <- lin_mdl %>%
+purity_corrected_GBM <- lin_mdl %>%
   mutate(resi = map(mu, residuals),
          expected_expr = map(mu,
                              ~predict(., data.frame(Purity = 1)))) %>% 
@@ -69,7 +69,7 @@ purity_corrected_CIT <- lin_mdl %>%
   select(Samples, Gene, corr_expr) %>% 
   pivot_wider(names_from = Samples, values_from = corr_expr)
 
-save(purity_corrected_CIT, file = "data/GBM_purity_corrected.Rdata")
+save(purity_corrected_GBM, file = "data/GBM_purity_corrected.Rdata")
 
 
 purity_data$GBM_classes <- GBM_classes
