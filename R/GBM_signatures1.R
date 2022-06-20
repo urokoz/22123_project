@@ -24,8 +24,8 @@ library("tidyverse")
 
 # Calculate which genes are significantly different for each subtype
 
-signif_genes <- significant_genes(GBM, GBM_classes)
-FC <- FC_calc(GBM, GBM_classes)
+signif_genes <- significant_genes(GBM_expr, GBM_classes)
+FC <- FC_calc(GBM_expr, GBM_classes)
 prediction_performance <- pred_perf(df, signif_genes, classes, )
 
 save(signif_genes, file = "data/GBM_signif_subtype_genes.Rdata")
@@ -34,7 +34,7 @@ save(prediction_performance, file = "pred_performances.Rdata")
 
 
 
-for (class in unique(CIT_classes)) {
+for (class in unique(GBM_classees)) {
   signa <- data.frame(signatures[[class]])
   colnames(signa) <- c("Probe.Set.ID")
   

@@ -146,6 +146,9 @@ probeID_to_geneID <- function(df) {
 # df <- load()
 # read.delim("data/top_or_bottom_25/normL_rest.txt")
 # probeID_to_geneID()
+expr_data <- GBM_expr
+classes <- GBM_classes
+classes[is.na(classes)] <- "Unknown"
 
 significant_genes <- function(expr_data, classes) {
   
@@ -245,8 +248,10 @@ calc_signatures <- function(data, interest_genes_list, classes) {
       }
     }
     signatures[[class]] <- list(interest_genes[1:best_size])
+    
+    list <- list("signatures" = signatures, "performances" = performances)
   }
-  return(signatures)
+  return(list)
 }
 
 

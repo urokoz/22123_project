@@ -26,4 +26,3 @@ source("R/GBM_signatures1.R")
 source("R/GBM_signatures2.R")
 source("R/GBM_signatures3.R")
 source("R/purity_GBM.R")
-q

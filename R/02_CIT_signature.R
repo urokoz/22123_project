@@ -27,11 +27,14 @@ library("tidyverse")
 
 signif_genes <- significant_genes(CIT_full, CIT_classes)
 FC <- FC_calc(CIT_full, CIT_classes)
-prediction_performance <- pred_perf(df, signif_genes, classes, )
+signatures <- calc_signatures(CIT_full, FC, CIT_classes)
+#prediction_performance <- pred_perf(df, signif_genes, classes, )
+
+
 
 save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
 save(FC, file = "data/CIT_FC.Rdata")
-save(prediction_performance, file = "pred_performances.Rdata")
+save(signatures, file = "CIT_signatures.Rdata")
 
 
 

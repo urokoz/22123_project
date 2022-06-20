@@ -38,6 +38,9 @@ GBM_classes <- GBM_classes$GeneExp_Subtype
 
 GBM_expr <- column_to_rownames(GBM_expr, var = "sample")
 
+GBM_classes[is.na(GBM_classes)] <- "Unknown"
+
+
 #test_classes <- data.frame(samples = GBM_clinical$sampleID, subtypes = GBM_clinical$GeneExp_Subtype)
 
 #test_classes <- column_to_rownames(test_classes, var = "samples")
