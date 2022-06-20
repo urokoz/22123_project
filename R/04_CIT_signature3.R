@@ -4,6 +4,8 @@
 #### 20/06/2022
 #### Technical University of Denmark
 
+# Calculate which genes are significantly different for each subtype
+diff_class <- c()
 
 high_diff_ranks <- rank_diff_fnc(CIT_full, CIT_classes)
 
@@ -132,12 +134,12 @@ for (class in unique(CIT_classes)) {
 # # testing and visualization of difference in gene expression for one subtype vs. rest for one gene
 # class <- "normL"
 # gene_number <- 1
-# 
+#
 # test_class <- data.frame(class = class, val = CIT_full[rownames(diff_class[[class]])[gene_number], CIT_classes == class])
 # test_rest <- data.frame(class = "rest", val = CIT_full[rownames(diff_class[[class]])[gene_number], CIT_classes != class])
 # 
-# rbind(test_class, test_rest) %>%
-#   boxplot(class, val, "Expression for subtype - TFAP2B", "Subtype", "Expression")
+# rbind(test_class, test_rest) %>% 
+#   boxplot(class, val, "Expression for subtype", "Subtype", "Expression")
 # 
 # 
 # # function version of this code:
@@ -163,7 +165,6 @@ for (class in unique(CIT_classes)) {
 #     match_idx <- match(mean_class_names, mean_rest_names)
 #     
 #     rank_vector <- c()
-#     dist_vector <- c()
 #     for (i in 1:length(match_idx)) {
 #       rank_vector[i] <- as.integer(i)
 #       dist_vector[i] <- match_idx[i] - as.integer(i)
@@ -214,7 +215,22 @@ for (class in unique(CIT_classes)) {
 # diff_test <- rank_diff_fnc(CIT_full, CIT_classes)
 # 
 # test_signatures <- calc_signatures(CIT_full, diff_test, CIT_classes)
-
-
-
-
+# 
+# 
+# for (class in unique(CIT_classes)) {
+#   signa <- data.frame(signatures[[class]])
+#   colnames(signa) <- c("Probe.Set.ID")
+#   
+#   df_joined <- Bordet_annot %>%
+#     select(Probe.Set.ID, Gene.Symbol) %>% 
+#     mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
+#     inner_join(signa, by = "Probe.Set.ID") %>% 
+#     filter(Gene.Symbol != "---")
+#   
+#   file_name <- sprintf("data/signatures3_CIT_%s_genes.txt", class)
+#   write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
+# }
+# 
+# 
+# 
+# 
