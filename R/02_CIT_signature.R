@@ -41,8 +41,6 @@ save(FC, file = "data/CIT_FC.Rdata")
 save(signatures, file = "CIT_signatures.Rdata")
 
 
-
-
 for (class in unique(CIT_classes)) {
   signa <- data.frame(signatures[[class]])
   colnames(signa) <- c("Probe.Set.ID")

@@ -20,3 +20,11 @@ source("R/GBM_signatures1.R")
 source("R/GBM_signatures2.R")
 source("R/GBM_signatures3.R")
 source("R/purity_GBM.R")
+
+load("data/GBM_purity_corrected.Rdata")
+
+GBM_expr <- column_to_rownames(purity_corrected_GBM, var = "Gene")
+
+source("R/pure_GBM_signatures1.R")
+source("R/pure_GBM_signatures2.R")
+source("R/pure_GBM_signatures3.R")
