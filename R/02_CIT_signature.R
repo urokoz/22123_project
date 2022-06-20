@@ -26,9 +26,14 @@ library("tidyverse")
 
 
 signif_genes <- significant_genes(CIT_full, CIT_classes)
-FC <- FC_calc(CIT_full, CIT_classes)
+load("data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
+FC <- FC_calc(CIT_full, signif_genes, CIT_classes)
+
 signatures <- calc_signatures(CIT_full, FC, CIT_classes)
-#prediction_performance <- pred_perf(df, signif_genes, classes, )
+
+
+performances <- signatures$performances
+signatures <- signatures$signatures
 
 
 
