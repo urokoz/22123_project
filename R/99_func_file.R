@@ -146,11 +146,11 @@ probeID_to_geneID <- function(df) {
 # df <- load()
 # read.delim("data/top_or_bottom_25/normL_rest.txt")
 # probeID_to_geneID()
-expr_data <- GBM_expr
-classes <- GBM_classes
-classes[is.na(classes)] <- "Unknown"
+
 
 significant_genes <- function(expr_data, classes) {
+  # calculate significantly differently expressed genes for each class based on
+  # each class based on the expression in the dataset 
   
   signif_genes <- c()
   unique_classes <- unique(classes)
@@ -160,6 +160,7 @@ significant_genes <- function(expr_data, classes) {
     for (probe in rownames(expr_data)) {
       is_class <- expr_data[probe, classes == class]
       rest <- expr_data[probe, classes != class]
+      
       res <- wilcox.test(x = as.numeric(is_class),
                          y = as.numeric(rest))
       results[[probe]] <- res$p.value
@@ -174,11 +175,14 @@ significant_genes <- function(expr_data, classes) {
   return(signif_genes)
 }
 
+
 # save(significant_genes(CIT_full, CIT_classes), file = "data/CIT_signif_subtype_genes.Rdata")
 # save(significant_genes(GBM_expr, GBM_clinical$GeneExp_Subtype), file = "data/GBM_signif_subtype_genes.Rdata")
 
 
 FC_calc <- function(expr_data, signif_genes, classes) {
+  # calculate how much the significantly different genes changes from class to rest
+  # this results in a log2(fold change)
   
   FC_lists <- c()
   for (class in unique(classes)) {
@@ -255,11 +259,11 @@ calc_signatures <- function(data, interest_genes_list, classes) {
 }
 
 
-# For each sample, the signature with the highest enrichment corresponds to the subtype you assign to the given sample
 name_max <- function(column) {
   subtype <- names(column)[which.max(column)]
   return(subtype)
 }
+
 
 rank_diff_fnc <- function(dataset, classes) {
   diff_class <- c()
@@ -295,6 +299,7 @@ rank_diff_fnc <- function(dataset, classes) {
   }
   return(diff_class)
 }
+
 
 mean_expression <- function(df, classes){
   for (class in unique(classes)) {
