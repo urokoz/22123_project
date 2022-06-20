@@ -2,10 +2,6 @@
 ## content gene set and an immune infiltrate gene set in agiven sample
 
 # download the package 
-
-library(utils)
-rforge <- "http://r-forge.r-project.org"
-install.packages("estimate", repos=rforge, dependencies=TRUE)
 library('estimate')
 library('tidyverse')
 library("broom")
@@ -36,14 +32,11 @@ purity_expr <- df %>%
 
 purity_data <- read_tsv('data/_raw/GBM_scores.gct', skip = 2)
 
+colnames(purity_data) <- gsub(pattern = "\\.", replacement = "-", x = colnames(purity_data))
+
 purity_data <- purity_data[4, -2] %>% 
   pivot_longer(!NAME, names_to = "Samples", values_to = "Purity") %>% 
   select(!NAME)
-
-test <- data.frame(CIT_classes) %>% 
-  rownames_to_column(var = "Samples") %>% 
-  inner_join(purity_data, by = "Samples")
-
 
 purity_expr_master <- purity_data %>% 
   inner_join(purity_expr, by = "Samples")
@@ -76,7 +69,11 @@ purity_corrected_CIT <- lin_mdl %>%
   select(Samples, Gene, corr_expr) %>% 
   pivot_wider(names_from = Samples, values_from = corr_expr)
 
-save(purity_corrected_CIT, file = "data/CIT_purity_corrected.Rdata")
+save(purity_corrected_CIT, file = "data/GBM_purity_corrected.Rdata")
 
 
-test %>% boxplot(CIT_classes, Purity, "Purity of all subtypes", "Subtype", "Purity")
+purity_data$GBM_classes <- GBM_classes
+
+purity_data %>% count(GBM_classes)
+
+purity_data %>% boxplot(GBM_classes, Purity, "Purity of all subtypes", "Subtype", "Purity")

@@ -26,7 +26,7 @@ library("tidyverse")
 
 
 signif_genes <- significant_genes(CIT_full, CIT_classes)
-load("data/mann_whitney_u_test/CIT_signif_subtype_genes.Rdata")
+
 FC <- FC_calc(CIT_full, signif_genes, CIT_classes)
 
 signatures <- calc_signatures(CIT_full, FC, CIT_classes)
@@ -34,7 +34,6 @@ signatures <- calc_signatures(CIT_full, FC, CIT_classes)
 
 performances <- signatures$performances
 signatures <- signatures$signatures
-
 
 
 save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
@@ -54,7 +53,7 @@ for (class in unique(CIT_classes)) {
     inner_join(signa, by = "Probe.Set.ID") %>% 
     filter(Gene.Symbol != "---")
   
-  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
+  file_name <- sprintf("data/mann_whitney_u_test/signature_CIT_%s_genes.txt", class)
   write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
 }
 

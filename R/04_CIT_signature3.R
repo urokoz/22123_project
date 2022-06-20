@@ -10,10 +10,25 @@ high_diff_ranks <- rank_diff_fnc(CIT_full, CIT_classes)
 high_diff_signatures <- calc_signatures(CIT_full, high_diff_ranks, CIT_classes)
 
 
-performances <- signatures$performances
-signatures <- signatures$signatures
+performances <- high_diff_signatures$performances
+signatures <- high_diff_signatures$signatures
 
-save(signatures, file = "data/rank_difference/high_diff_signatures.Rdata")
+save(signatures, file = "data/rank_difference/CIT_high_diff_signatures.Rdata")
+load("data/rank_difference/CIT_probe_signatures.Rdata")
+
+for (class in unique(CIT_classes)) {
+  signa <- data.frame(signatures[[class]])
+  colnames(signa) <- c("Probe.Set.ID")
+  
+  df_joined <- Bordet_annot %>%
+    select(Probe.Set.ID, Gene.Symbol) %>% 
+    mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
+    inner_join(signa, by = "Probe.Set.ID") %>% 
+    filter(Gene.Symbol != "---")
+  
+  file_name <- sprintf("data/rank_difference/signature_CIT_%s_genes.txt", class)
+  write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
+}
 
 
 # # Calculate which genes are significantly different for each subtype

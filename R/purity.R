@@ -3,22 +3,19 @@
 
 # download the package 
 
-library(utils)
-rforge <- "http://r-forge.r-project.org"
-install.packages("estimate", repos=rforge, dependencies=TRUE)
 library('estimate')
 library('tidyverse')
 library("broom")
 source("R/99_func_file.R")
 
-df_master <- probe_to_gene("CIT", "max")
-df <- df_master[2:nrow(df_master),]
+CIT_gene_master <- probe_to_gene("CIT", "max")
+CIT_gene <- CIT_gene_master[2:nrow(CIT_gene_master),]
 
-names(df)[names(df) == "Gene.Symbol"] <- "NAME"
+names(CIT_gene)[names(CIT_gene) == "Gene.Symbol"] <- "NAME"
 
-df <- column_to_rownames(df, var = "NAME")
+CIT_gene <- column_to_rownames(CIT_gene, var = "NAME")
 
-write.table(df, file = "data/_raw/CIT_samples.txt", sep = "\t", quote = F)
+write.table(CIT_gene, file = "data/_raw/CIT_samples.txt", sep = "\t", quote = F)
 
 filterCommonGenes(input.f="data/_raw/CIT_samples.txt", output.f='data/_raw/CIT_genes.gct', id="GeneSymbol")
 
@@ -28,9 +25,9 @@ estimateScore(input.ds = 'data/_raw/CIT_genes.gct',
               platform = c("affymetrix"))
 
 # read and tidy the output file
-df <- rownames_to_column(df, var = "NAME")
+CIT_gene <- rownames_to_column(CIT_gene, var = "NAME")
 
-purity_expr <- df %>% 
+purity_expr <- CIT_gene %>% 
   pivot_longer(cols = !NAME, names_to = "Samples", values_to = "Expr") %>% 
   pivot_wider(names_from = NAME, values_from = Expr) 
 
@@ -47,8 +44,6 @@ test <- data.frame(CIT_classes) %>%
 
 purity_expr_master <- purity_data %>% 
   inner_join(purity_expr, by = "Samples")
-
-
 
 
 purity_expr_master %>% 

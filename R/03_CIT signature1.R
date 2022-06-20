@@ -19,22 +19,22 @@ library('tidyverse')
 # Calculate which genes are significantly different for each subtype
 mean_expression <- function(df){
   for (class in unique(CIT_classes)) {
-# classify of the all subtypes to the rest      
+    # classify of the all subtypes to the rest      
     is_class <- df[,CIT_classes == class]
     rest <- df[,CIT_classes != class]
-# calculate the mean of each samples in each of the genes
+    # calculate the mean of each samples in each of the genes
     mean_class <- data.frame(apply(is_class, 1, mean))
     mean_rest  <- data.frame(apply(rest, 1, mean))
-# rename the mean colunms
+    # rename the mean colunms
     colnames(mean_class) <- c('mean_class') 
     colnames(mean_rest) <- c('mean_rest')
-# range the expression of them
+    # range the expression of them
     mean_class <- arrange(mean_class,desc(mean_class))
     mean_rest <-arrange(mean_rest,desc(mean_rest))
-# change the probe names to genes
+    # change the probe names to genes
     #probe_to_gene(mean_class,'mean')
     #probe_to_gene(mean_rest,'mean')
-# save the files
+    # save the files
     write.table(mean_class,file = sprintf('data/top_or_buttom_25/%s_class.txt', class))
     write.table(mean_rest,file = sprintf('data/top_or_buttom_25/%s_rest.txt',class))
     }

@@ -19,15 +19,15 @@ mean_expression(GBM_expr, GBM_classes)
 ## and the buttom of the rest.
 
 Overlap_genes <- function(subtypes, percentage){
-  temp_class <- read.table(sprintf('data/top_or_buttom_25/%s_class.txt',subtypes))
-  temp_rest  <- read.table(sprintf('data/top_or_buttom_25/%s_rest.txt',subtypes))
+  temp_class <- read.table(sprintf('data/top_or_buttom_25/%s_class_GBM.txt',subtypes))
+  temp_rest  <- read.table(sprintf('data/top_or_buttom_25/%s_rest_GBM.txt',subtypes))
   
   index_25 <- as.integer(nrow(temp_class)*percentage)
   index_75 <- as.integer(nrow(temp_rest)*(1-percentage))
   top_class_list <- rownames(temp_class)[1:index_25]
   bot_rest_list <- rownames(temp_rest)[index_75:nrow(temp_rest)]
   overlap <- top_class_list[top_class_list %in% bot_rest_list]
-  {write(overlap, file =sprintf('data/top_or_buttom_25/0.35/%s_signatures.txt',subtypes))}}
+  {write(overlap, file =sprintf('data/top_or_buttom_25/0.35/%s_signatures_GBM.txt',subtypes))}}
 
 
 percentage <- 0.35
