@@ -14,7 +14,7 @@ library("tidyverse")
 # CIT_class contains the subtypes
 load("data/_raw/CIT_data.Rdata")
 load("data/_raw/Bordet.rdata")
-GBM_expr <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_HiSeqV2")
+GBM_expr <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_HiSeqV2.gz")
 GBM_clinical <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_GBM_clinicalMatrix")
 GBM_genes <- read_table("data/_raw/gbm_subtype_genes.txt")
 
