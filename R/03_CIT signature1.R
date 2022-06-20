@@ -7,8 +7,8 @@
 ## the CIT_annot contains annotions of the 375 probes used for classification  
 ## the CIT class contains the subtypes of all the samples
 
-load('data/_raw/CIT_data.Rdata')
-load('data/_raw/Bordet.rdata')
+#load('data/_raw/CIT_data.Rdata')
+#load('data/_raw/Bordet.rdata')
 source("R/99_func_file.R")
 CIT_full <- probe_to_gene('CIT', 'mean')
 
