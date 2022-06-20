@@ -244,7 +244,7 @@ pred_perf <- function(data, signa, classes, class) {
 # data <- as.matrix(GBM_expr)
 # interest_genes_list <- FC_GBM
 # classes <- GBM_classes
-# class <- "Neural"
+# class <- "Unknown"
 # 
 # i <- 1
 
@@ -258,13 +258,14 @@ calc_signatures <- function(data, interest_genes_list, classes) {
   for (class in unique(classes)) {
     interest_genes <- as.character(interest_genes_list[[class]])
     
-    if (is.null(interest_genes)) {
+    if (length(interest_genes) < 1) {
       print(sprintf("%s subtype does not have any significant genes.", class))
       signatures[[class]] <- NULL
       next
     }
     
     best_perf <- 0
+    best_counter <- 0
     conseq_worse <- 0
     best_size <- NULL
     for (i in 1:length(interest_genes)) {
@@ -279,7 +280,14 @@ calc_signatures <- function(data, interest_genes_list, classes) {
         if (conseq_worse == 50) {
           break
         }
+      } else if (perf == best_perf) {
+        best_counter <- best_counter + 1
+        if (best_counter == 50) {
+          break
+        }
+      
       } else {
+        best_counter <- 0
         conseq_worse <- 0
         best_perf <- perf
         best_size <- i

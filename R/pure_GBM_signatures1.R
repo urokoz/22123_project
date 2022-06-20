@@ -20,7 +20,7 @@ save(signatures, file = "data/mann_whitney_u_test/pure/GBM_signatures.Rdata")
 
 for (class in unique(GBM_classes)) {
   signa <- data.frame(signatures[[class]])
-  if (is.null(signa)){
+  if (length(signa) < 1) {
     next
   }
   
@@ -29,4 +29,17 @@ for (class in unique(GBM_classes)) {
   file_name <- sprintf("data/mann_whitney_u_test/pure/signature_GBM_%s_genes.txt", class)
   write.table(signa, file = file_name, quote = F, row.names = F, col.names = F)
 }
+
+
+df <- data.frame(performances)
+colnames(df) <- c("Subtype", "Sig_len", "Perf")
+df$Perf <- as.numeric(as.character(df$Perf))
+df$Sig_len <- as.numeric(as.character(df$Sig_len))
+
+df %>% 
+  ggplot(aes(x = Sig_len,
+             y = Perf,
+             color = Subtype)) +
+  geom_line() + 
+  labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
 
