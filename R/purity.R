@@ -6,6 +6,8 @@
 library('estimate')
 library('tidyverse')
 library("broom")
+library('purrr')
+
 source("R/99_func_file.R")
 
 CIT_gene_master <- probe_to_gene("CIT", "max")
@@ -52,6 +54,7 @@ purity_expr_master %>%
   geom_point()
 
 
+
 lin_mdl <- purity_expr_master %>% 
   pivot_longer(!c(Samples, Purity), names_to = "Gene", values_to = "Expression") %>% 
   group_by(Gene) %>% 
@@ -75,4 +78,20 @@ save(purity_corrected_CIT, file = "data/CIT_purity_corrected.Rdata")
   
 
 test %>% boxplot(CIT_classes, Purity, "Purity of all subtypes", "Subtype", "Purity")
+
+save(purity_expr, file = "data/purity_expr.Rdata")
+
+#fit linear model to data
+data <- load("data/purity_expr.Rdata")
+
+data_nested <- data %>%
+  nest() %>% 
+  ungroup() %>% 
+  mutate(mu_group = map(data,
+                        ~glm(Purity ~ age + bmi + mtdna + psa,
+                             data = .x,
+                             family = binomial(link = "logit"))))
+
+
+
 
