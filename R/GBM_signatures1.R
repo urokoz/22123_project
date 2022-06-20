@@ -23,42 +23,39 @@ library("tidyverse")
 #CIT_full <- CIT_full %>% column_to_rownames(var = "Gene.Symbol")
 
 # Calculate which genes are significantly different for each subtype
+signif_genes_GBM <- significant_genes(GBM_expr, GBM_classes)
+save(signif_genes_GBM, file = "data/mann_whitney_u_test/GBM_signif_subtype_genes.Rdata")
 
-signif_genes <- significant_genes(GBM_expr, GBM_classes)
-FC <- FC_calc(GBM_expr, GBM_classes)
-prediction_performance <- pred_perf(df, signif_genes, classes, )
+FC_GBM <- FC_calc(GBM_expr, signif_genes_GBM, GBM_classes)
+save(FC_GBM, file = "data/mann_whitney_u_test/GBM_FC.Rdata")
 
-save(signif_genes, file = "data/GBM_signif_subtype_genes.Rdata")
-save(FC, file = "data/GBM_FC.Rdata")
-save(prediction_performance, file = "pred_performances.Rdata")
+signatures_GBM <- calc_signatures(GBM_expr, FC_GBM, GBM_classes)
 
+performances <- signatures$performances
+signatures <- signatures$signatures
+
+save(signatures, file = "data/mann_whitney_u_test/GBM_signatures.Rdata")
 
 
 for (class in unique(GBM_classees)) {
   signa <- data.frame(signatures[[class]])
   colnames(signa) <- c("Probe.Set.ID")
   
-  df_joined <- Bordet_annot %>%
-    select(Probe.Set.ID, Gene.Symbol) %>% 
-    mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
-    inner_join(signa, by = "Probe.Set.ID") %>% 
-    filter(Gene.Symbol != "---")
-  
-  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
+  file_name <- sprintf("data/signature_GBM_%s_genes.txt", class)
   write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
 }
 
-df <- data.frame(performances)
-colnames(df) <- c("Subtype", "Sig_len", "Perf")
-df$Perf <- as.numeric(as.character(df$Perf))
-df$Sig_len <- as.numeric(as.character(df$Sig_len))
-
-df %>% 
-  ggplot(aes(x = Sig_len,
-             y = Perf,
-             color = Subtype)) +
-  geom_line() + 
-  labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
+# df <- data.frame(performances)
+# colnames(df) <- c("Subtype", "Sig_len", "Perf")
+# df$Perf <- as.numeric(as.character(df$Perf))
+# df$Sig_len <- as.numeric(as.character(df$Sig_len))
+# 
+# df %>% 
+#   ggplot(aes(x = Sig_len,
+#              y = Perf,
+#              color = Subtype)) +
+#   geom_line() + 
+#   labs(title = "Performance of variation in subtypes' signature length", x = "Number of genes in signatures", y = "Performance")
 
 
 # For each sample, the signature with the highest enrichment corresponds to the subtype you assign to the given sample
