@@ -178,5 +178,19 @@ diff_test <- rank_diff_fnc(CIT_full, CIT_classes)
 test_signatures <- calc_signatures(CIT_full, diff_test, CIT_classes)
 
 
+for (class in unique(CIT_classes)) {
+  signa <- data.frame(signatures[[class]])
+  colnames(signa) <- c("Probe.Set.ID")
+  
+  df_joined <- Bordet_annot %>%
+    select(Probe.Set.ID, Gene.Symbol) %>% 
+    mutate(Gene.Symbol = str_extract(Gene.Symbol, "^\\S+")) %>%
+    inner_join(signa, by = "Probe.Set.ID") %>% 
+    filter(Gene.Symbol != "---")
+  
+  file_name <- sprintf("data/signature_CIT_%s_genes.txt", class)
+  write.table(df_joined$Gene.Symbol, file = file_name, quote = F, row.names = F, col.names = F)
+}
+
 
 
