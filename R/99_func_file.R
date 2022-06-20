@@ -147,6 +147,9 @@ probeID_to_geneID <- function(df) {
 # read.delim("data/top_or_bottom_25/normL_rest.txt")
 # probeID_to_geneID()
 
+# expr_data <- GBM_expr
+# classes <- GBM_classes
+# class <- "Neural"
 
 significant_genes <- function(expr_data, classes) {
   # calculate significantly differently expressed genes for each class based on
@@ -163,10 +166,11 @@ significant_genes <- function(expr_data, classes) {
       
       res <- wilcox.test(x = as.numeric(is_class),
                          y = as.numeric(rest))
+      
       results[[probe]] <- res$p.value
       
     }
-    results <- p.adjust(results)
+    results <- p.adjust(na.omit(results))
     results <- results[results < 0.05]
     
     signif_genes[[class]] <- results
@@ -179,6 +183,9 @@ significant_genes <- function(expr_data, classes) {
 # save(significant_genes(CIT_full, CIT_classes), file = "data/CIT_signif_subtype_genes.Rdata")
 # save(significant_genes(GBM_expr, GBM_clinical$GeneExp_Subtype), file = "data/GBM_signif_subtype_genes.Rdata")
 
+# class <- "Neural"
+# expr_data <- GBM_expr
+# classes <- GBM_classes
 
 FC_calc <- function(expr_data, signif_genes, classes) {
   # calculate how much the significantly different genes changes from class to rest
@@ -205,7 +212,7 @@ FC_calc <- function(expr_data, signif_genes, classes) {
     
     write.table(signa$probe, file = file_name, quote = F, row.names = F, col.names = F)
     
-    FC_lists[[class]] <- signa$probes
+    FC_lists[[class]] <- signa$probe
     
   }
   return(FC_lists)
@@ -222,13 +229,27 @@ pred_perf <- function(data, signa, classes, class) {
 }
 
 
+# data <- CIT_full
+# interest_genes_list <- FC
+# classes <- CIT_classes
+# class <- "normL"
+# 
+# data <- as.matrix(GBM_expr)
+# interest_genes_list <- FC_GBM
+# classes <- GBM_classes
+# class <- "Neural"
+# 
+# i <- 1
+
 calc_signatures <- function(data, interest_genes_list, classes) {
+  
+  data <- as.matrix(data)
   
   signatures <- c()
   performances <- c()
   
   for (class in unique(classes)) {
-    interest_genes <- interest_genes_list[[class]]
+    interest_genes <- as.character(interest_genes_list[[class]])
     
     best_perf <- 0
     conseq_worse <- 0
@@ -240,7 +261,7 @@ calc_signatures <- function(data, interest_genes_list, classes) {
       print(sprintf("%s, %d:  %f", class, i, perf))
       performances <- rbind(performances, t(c(class, i, perf)))
       
-      if (perf <= best_perf) {
+      if (perf < best_perf) {
         conseq_worse <- conseq_worse + 1
         if (conseq_worse == 50) {
           break
@@ -287,6 +308,7 @@ rank_diff_fnc <- function(dataset, classes) {
     match_idx <- match(mean_class_names, mean_rest_names)
     
     rank_vector <- c()
+    dist_vector <- c()
     for (i in 1:length(match_idx)) {
       rank_vector[i] <- as.integer(i)
       dist_vector[i] <- match_idx[i] - as.integer(i)
