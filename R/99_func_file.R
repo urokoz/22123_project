@@ -4,6 +4,12 @@ library(tidyverse)
 #input: 1. argument: string of dataframe; either "bordet" or "CIT", 2. argument: string with method (max, mean or median) 
 #output: table containing genes and desired calculation of expression values
 
+load_function <- function(df) {
+  df <- 
+  return(df)
+}
+
+
 probe_to_gene <- function(data, method) {
   
   if (data == "bordet") {
@@ -208,10 +214,6 @@ pred_perf <- function(data, signa, classes, class) {
   return(ks.test(enrich[classes == class], enrich[classes != class])$statistic)
 }
 
-dataset <- CIT_full
-interest_genes_list <- diff_test
-classes <- CIT_classes
-i <- 1
 
 calc_signatures <- function(data, interest_genes_list, classes) {
   
@@ -289,4 +291,25 @@ rank_diff_fnc <- function(dataset, classes) {
   return(diff_class)
 }
 
-
+mean_expression <- function(df, classes){
+  for (class in unique(classes)) {
+    # classify of the all subtypes to the rest      
+    is_class <- df[,classes == class]
+    rest <- df[,classes != class]
+    # calculate the mean of each samples in each of the genes
+    mean_class <- data.frame(apply(is_class, 1, mean))
+    mean_rest  <- data.frame(apply(rest, 1, mean))
+    # rename the mean colunms
+    colnames(mean_class) <- c('mean_class') 
+    colnames(mean_rest) <- c('mean_rest')
+    # range the expression of them
+    mean_class <- arrange(mean_class,desc(mean_class))
+    mean_rest <-arrange(mean_rest,desc(mean_rest))
+    # change the probe names to genes
+    #probe_to_gene(mean_class,'mean')
+    #probe_to_gene(mean_rest,'mean')
+    # save the files
+    write.table(mean_class,file = sprintf('data/top_or_buttom_25/%s_class.txt', class))
+    write.table(mean_rest,file = sprintf('data/top_or_buttom_25/%s_rest.txt',class))
+  }
+}

@@ -4,24 +4,6 @@
 #### 20/06/2022
 #### Technical University of Denmark
 
-## Load necessary packages
-library('GSVA')
-library("tidyverse")
-
-## Load expression data (NOTE: this is microarray data, not RNA-seq!)
-# CIT_full contains the expression of all probes for all samples
-# CIT_annot contains the annotation for the 375 probes used for classification
-# CIT_class contains the subtypes
-load("data/_raw/CIT_data.Rdata")
-load("data/_raw/Bordet.rdata")
-source("R/99_func_file.R")
-
-#CIT_full <- probe_to_gene("CIT", "max")
-#CIT_full <- CIT_full %>% column_to_rownames(var = "Gene.Symbol")
-
-
-
-
 # Calculate which genes are significantly different for each subtype
 diff_class <- c()
 for (class in unique(CIT_classes)) {

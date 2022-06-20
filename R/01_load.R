@@ -19,6 +19,8 @@ GBM_clinical <- read_tsv("data/_raw/TCGA.GBM.sampleMAP_GBM_clinicalMatrix")
 GBM_genes <- read_table("data/_raw/gbm_subtype_genes.txt")
 source("R/99_func_file.R")
 
+
+
 GBM_transposed <- GBM_expr %>% 
   as.data.frame() %>% 
   t()

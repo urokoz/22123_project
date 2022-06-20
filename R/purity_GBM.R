@@ -11,20 +11,20 @@ library('tidyverse')
 library("broom")
 source("R/99_func_file.R")
 
-df_master <- probe_to_gene("CIT", "max")
+df_master <- GBM_expr
 df <- df_master[2:nrow(df_master),]
 
-names(df)[names(df) == "Gene.Symbol"] <- "NAME"
+#names(df)[names(df) == "Gene.Symbol"] <- "NAME"
 
-df <- column_to_rownames(df, var = "NAME")
+#df <- column_to_rownames(df, var = "NAME")
 
-write.table(df, file = "data/_raw/CIT_samples.txt", sep = "\t", quote = F)
+write.table(df, file = "data/_raw/GBM_samples.txt", sep = "\t", quote = F)
 
-filterCommonGenes(input.f="data/_raw/CIT_samples.txt", output.f='data/_raw/CIT_genes.gct', id="GeneSymbol")
+filterCommonGenes(input.f="data/_raw/GBM_samples.txt", output.f='data/_raw/GBM_genes.gct', id="GeneSymbol")
 
 # calculate the score 
-estimateScore(input.ds = 'data/_raw/CIT_genes.gct',
-              output.ds = 'data/_raw/CIT_scores.gct',
+estimateScore(input.ds = 'data/_raw/GBM_genes.gct',
+              output.ds = 'data/_raw/GBM_scores.gct',
               platform = c("affymetrix"))
 
 # read and tidy the output file
@@ -34,7 +34,7 @@ purity_expr <- df %>%
   pivot_longer(cols = !NAME, names_to = "Samples", values_to = "Expr") %>% 
   pivot_wider(names_from = NAME, values_from = Expr) 
 
-purity_data <- read_tsv('data/_raw/CIT_scores.gct', skip = 2)
+purity_data <- read_tsv('data/_raw/GBM_scores.gct', skip = 2)
 
 purity_data <- purity_data[4, -2] %>% 
   pivot_longer(!NAME, names_to = "Samples", values_to = "Purity") %>% 
@@ -51,10 +51,10 @@ purity_expr_master <- purity_data %>%
 
 
 
-purity_expr_master %>% 
-  ggplot(aes(x = Purity,
-             y = AACS)) +
-  geom_point()
+#purity_expr_master %>% 
+ # ggplot(aes(x = Purity,
+  #           y = AACS)) +
+  #geom_point()
 
 
 lin_mdl <- purity_expr_master %>% 
@@ -77,7 +77,6 @@ purity_corrected_CIT <- lin_mdl %>%
   pivot_wider(names_from = Samples, values_from = corr_expr)
 
 save(purity_corrected_CIT, file = "data/CIT_purity_corrected.Rdata")
-  
+
 
 test %>% boxplot(CIT_classes, Purity, "Purity of all subtypes", "Subtype", "Purity")
-

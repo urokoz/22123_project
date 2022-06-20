@@ -24,15 +24,13 @@ library("tidyverse")
 
 # Calculate which genes are significantly different for each subtype
 
-
-signif_genes <- significant_genes(CIT_full, CIT_classes)
-FC <- FC_calc(CIT_full, CIT_classes)
+signif_genes <- significant_genes(GBM, GBM_classes)
+FC <- FC_calc(GBM, GBM_classes)
 prediction_performance <- pred_perf(df, signif_genes, classes, )
 
-save(signif_genes, file = "data/CIT_signif_subtype_genes.Rdata")
-save(FC, file = "data/CIT_FC.Rdata")
+save(signif_genes, file = "data/GBM_signif_subtype_genes.Rdata")
+save(FC, file = "data/GBM_FC.Rdata")
 save(prediction_performance, file = "pred_performances.Rdata")
-
 
 
 

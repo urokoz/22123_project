@@ -14,7 +14,7 @@ source("R/99_func_file.R")
 # load some necessary packages
 library('tidyverse')
 
-mean_expression(CIT_full, CIT_classes)
+mean_expression(GBM_expr, GBM_classes)
 ## find the overlap of the genes that exist in both the top of the specifical class
 ## and the buttom of the rest.
 
@@ -27,11 +27,9 @@ Overlap_genes <- function(subtypes, percentage){
   top_class_list <- rownames(temp_class)[1:index_25]
   bot_rest_list <- rownames(temp_rest)[index_75:nrow(temp_rest)]
   overlap <- top_class_list[top_class_list %in% bot_rest_list]
-      {write(overlap, file =sprintf('data/top_or_buttom_25/0.35/%s_signatures.txt',subtypes))}}
-      
+  {write(overlap, file =sprintf('data/top_or_buttom_25/0.35/%s_signatures.txt',subtypes))}}
+
 
 percentage <- 0.35
 # test
-for(subtypes in unique(CIT_classes)){Overlap_genes(subtypes, percentage)}
-
-
+for(subtypes in unique(GBM_classes)){Overlap_genes(subtypes, percentage)}
